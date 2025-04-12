@@ -657,20 +657,126 @@ namespace SDK
 	};
 
 	// This function is used to get the value of a property in a class
-	template <typename T = UObject*>
-	T GET_PROPERTY_VALUE(SDK::UObject* Object, const char* PropertyName);
+	template <typename T>
+	T GET_PROPERTY_VALUE(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return T();
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return T();
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return T();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
 
 	// This function is used to get the value of a property in a class
 	template <typename T>
-	T& GET_PROPERTY_VALUEREF(SDK::UObject* Object, const char* PropertyName);
+	T& GET_PROPERTY_VALUEREF(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		T* Value = nullptr;
+
+		if (!Object) return *Value;
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return *Value;
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return *Value;
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
 
 	// This function is used to get the offset of a property in a class
-	template <typename T = UObject*>
-	T GET_PROPERTY_OFFSET(SDK::UObject* Object, const char* PropertyName);
+	template <typename T>
+	T GET_PROPERTY_OFFSET(SDK::UObject* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return T();
+
+		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
+			if (!Property) return T();
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return T();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
+	}
 
 	// This function is used to get the offset of a property in a struct/scriptstruct
 	template <typename V>
-	int GET_PROPERTYSTRUCT_OFFSET(V* Object, const char* PropertyName);
+	int GET_PROPERTYSTRUCT_OFFSET(V* Object, const char* PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object) return 0;
+
+		std::string Key = Object->GetScriptClass()->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->GetScriptClass()->FindPropertyByName(PropertyName, true);
+			if (!Property) return 0;
+
+			Offset = Property->Offset_Internal();
+			if (Offset <= 0) return 0;
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return Offset;
+	}
 
 	UClass* StaticClassImpl(const char* ClassName);
 }
