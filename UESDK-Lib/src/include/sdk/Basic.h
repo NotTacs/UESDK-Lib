@@ -13,7 +13,8 @@ namespace SDK
 	class FOutputDevice
 	{
 	public:
-
+		bool bSuppressEventTag;
+		bool bAutoEmitLineTerminator;
 	};
 
 	struct PlaceholderBitfield
@@ -244,6 +245,7 @@ namespace SDK
 	public:
 		uint8 FieldMask();
 		bool ReadBitFieldValue(UObject* Object);
+		void SetBitFieldValue(UObject* Object, bool bValue);
 	};
 
 	class UClass : public UStruct

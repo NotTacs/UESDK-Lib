@@ -319,6 +319,26 @@ bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
 	return false;
 }
 
+void SDK::UBoolProperty::SetBitFieldValue(UObject* Object, bool NewVal)
+{
+	auto Addr = *reinterpret_cast<PlaceholderBitfield**>((__int64(Object) + this->Offset_Internal()));
+
+	auto BitField = Addr;
+
+
+	switch (FieldMask()) {
+	case 0x1:  BitField->First = NewVal; break;
+	case 0x2:  BitField->Second = NewVal; break;
+	case 0x4:  BitField->Third = NewVal; break;
+	case 0x8:  BitField->Fourth = NewVal; break;
+	case 0x10: BitField->Fifth = NewVal; break;
+	case 0x20: BitField->Sixth = NewVal; break;
+	case 0x40: BitField->Seventh = NewVal; break;
+	case 0x80: BitField->Eighth = NewVal; break;
+	case 0xFF: *(bool*)BitField = NewVal; break;
+	}
+}
+
 SDK::UClass* SDK::FSoftObjectPath::GetStructClass()
 {
 	static UClass* Class = nullptr;

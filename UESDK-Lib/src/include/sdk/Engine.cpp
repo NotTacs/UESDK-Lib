@@ -16,6 +16,11 @@ SDK::AFortGameStateAthena* SDK::UWorld::GameState()
 	return GET_PROPERTY_VALUE<AFortGameStateAthena*>(this, "GameState");
 }
 
+SDK::UGameInstance* SDK::UWorld::OwningGameInstance()
+{
+	return GET_PROPERTY_VALUE<UGameInstance*>(this, "OwningGameInstance");
+}
+
 SDK::UEngine* SDK::UEngine::GetEngine()
 {
 	if (!SDK::UE::Core::GEngine)
@@ -59,6 +64,72 @@ SDK::FName SDK::UKismetStringLibrary::Conv_StringToName(const FString& InString)
 	Params.InString = std::move(InString);
 
 	StaticClass()->GetDefaultObj()->ProcessEvent(Func, &Params);
+
+	return Params.ReturnValue;
+}
+
+SDK::APlayerController* SDK::ULocalPlayer::PlayerController()
+{
+	return GET_PROPERTY_VALUEREF<SDK::APlayerController*>(this, "PlayerController");
+}
+SDK::TArray<SDK::ULocalPlayer*>& SDK::UGameInstance::LocalPlayers()
+{
+	return GET_PROPERTY_VALUEREF<TArray<SDK::ULocalPlayer*>>(this, "LocalPlayers");
+}
+
+void SDK::APlayerController::SwitchLevel(SDK::FString URL)
+{
+	static UFunction* Func = nullptr;
+
+	if (!Func)
+	{
+		Func = this->GetClass()->FindFunctionByName("SwitchLevel");
+	}
+
+	struct PlayerController_SwitchLevel
+	{
+		SDK::FString URL;
+	} Params;
+
+	Params.URL = URL;
+
+	this->ProcessEvent(Func, &Params);
+}
+
+static inline void (*Step)(SDK::FFrame* Stack, SDK::UObject*, void* const) = decltype(Step)(SDK::Addresses::Step);
+static inline void (*StepExplicitProperty)(SDK::FFrame*, void* const, SDK::UField*) = decltype(StepExplicitProperty)(SDK::Addresses::StepExplicitProperty);
+
+void SDK::FFrame::StepCompiledIn(void* const Result, bool ForceExplicitProp)
+{
+	if (Code && !ForceExplicitProp)
+	{
+		Step(this, Object, Result);
+	}
+	else
+	{
+		UField* _Prop = PropertyChainForCompiledIn;
+		PropertyChainForCompiledIn = _Prop->Next();
+		StepExplicitProperty(this, Result, _Prop);
+	}
+}
+
+void SDK::FFrame::IncrementCode()
+{
+	Code = (uint8_t*)(__int64(Code) + (bool)Code);
+}
+
+SDK::FTransform SDK::AActor::GetTransform()
+{
+	static UFunction* Func = nullptr;
+	if (!Func)
+		Func = this->GetClass()->FindFunctionByName("GetTransform");
+
+	struct
+	{
+		FTransform ReturnValue;
+	} Params;
+
+	this->ProcessEvent(Func, &Params);
 
 	return Params.ReturnValue;
 }

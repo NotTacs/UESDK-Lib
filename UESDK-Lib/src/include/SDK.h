@@ -23,6 +23,8 @@ namespace SDK
 		extern uintptr_t FNameToString;
 		extern uintptr_t FNameToStringVoid;
 		extern uintptr_t UObjectProcessEvent;
+		extern uintptr_t Step;
+		extern uintptr_t StepExplicitProperty;
 	}
 
 	namespace MemberOffsets {

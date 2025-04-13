@@ -4,6 +4,8 @@ uintptr_t SDK::Addresses::ObjObjects = 0;
 uintptr_t SDK::Addresses::FNameToString = 0;
 uintptr_t SDK::Addresses::FNameToStringVoid = 0;
 uintptr_t SDK::Addresses::UObjectProcessEvent = 0;
+uintptr_t SDK::Addresses::Step = 0;
+uintptr_t SDK::Addresses::StepExplicitProperty = 0;
 
 int SDK::MemberOffsets::UStruct_SuperStruct = -1;
 int SDK::MemberOffsets::UStruct_Children = -1;
@@ -129,6 +131,16 @@ bool SDK::UE::Core::SetupEngineVersion()
 	FString TempString = GetEngineVersion(TempString);
 
 	SDK::UE::EngineVersion = TempString.ToString();
+
+	UFunction* SwitchLevelFN = reinterpret_cast<UFunction*>(SDK::UE::Core::GObjects->FindObjectFast("SwitchLevel"));
+
+	Scanner = Memcury::Scanner(uintptr_t(SwitchLevelFN->Func())).ScanFor({ 0xE8 });
+
+	SDK::Addresses::Step = Scanner.RelativeOffset(1).Get();
+
+	Scanner = Memcury::Scanner(uintptr_t(SwitchLevelFN->Func())).ScanFor({ 0xE8 }, true, 1);
+
+	SDK::Addresses::StepExplicitProperty = Scanner.RelativeOffset(1).Get();
 
 	return true;
 }
