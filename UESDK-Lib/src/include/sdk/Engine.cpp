@@ -21,6 +21,11 @@ SDK::UGameInstance* SDK::UWorld::OwningGameInstance()
 	return GET_PROPERTY_VALUE<UGameInstance*>(this, "OwningGameInstance");
 }
 
+SDK::UNetDriver*& SDK::UWorld::NetDriver()
+{
+	return GET_PROPERTY_VALUEREF<UNetDriver*>(this, "NetDriver");
+}
+
 SDK::UEngine* SDK::UEngine::GetEngine()
 {
 	if (!SDK::UE::Core::GEngine)

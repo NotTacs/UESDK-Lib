@@ -22,7 +22,6 @@ int SDK::MemberOffsets::UFunction_Func = -1;
 std::string SDK::UE::EngineVersion = "";
 std::unique_ptr<SDK::FUObjectArray> SDK::UE::Core::GObjects = nullptr;
 SDK::UEngine* SDK::UE::Core::GEngine = nullptr;
-SDK::UWorld* SDK::UE::Core::GWorld = nullptr;
 
 bool SDK::UE::Core::InitGObjects()
 {
@@ -149,9 +148,16 @@ bool SDK::UE::Core::InitProcessEvent()
 {
 	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? F6 C3", true);
 
-	if (SDK::UE::GetFortniteVersion() >= 19.1) //idk mate
+	if (SDK::UE::GetFortniteVersion() >= 19.00) //idk mate
 	{
 		Scanner = Memcury::Scanner::FindPattern("41 FF 92 ? ? ? ? E9 ? ? ? ? 49 8B C8", true);
+	}
+
+	if (round(SDK::UE::GetFortniteVersion()) == 18)
+	{
+		int ProcEventIdx = 0x44;
+		SDK::Addresses::UObjectProcessEvent = __int64(SDK::StaticClassImpl("Object")->GetDefaultObj()->VTable[ProcEventIdx]);
+		return true;
 	}
 
 	if (Scanner.Get())
@@ -175,15 +181,7 @@ bool SDK::UE::Core::InitGEngine()
 	}
 	return true;
 }
-bool SDK::UE::Core::InitGWorld()
-{
-	SDK::UE::Core::GWorld = SDK::UEngine::GetEngine()->GameViewport()->World();
-	if (!SDK::UE::Core::GWorld)
-	{
-		return false;
-	}
-	return true;
-}
+
 bool SDK::Init()
 {
 	if (!SDK::UE::Core::InitGObjects())
@@ -232,12 +230,6 @@ bool SDK::Init()
 	if (!SDK::UE::Core::InitGEngine())
 	{
 		std::cout << "Failed to initalize GEngine" << std::endl;
-		return false;
-	}
-
-	if (!SDK::UE::Core::InitGWorld())
-	{
-		std::cout << "Failed to initalize GWorld" << std::endl;
 		return false;
 	}
 

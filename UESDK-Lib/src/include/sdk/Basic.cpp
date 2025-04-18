@@ -283,9 +283,9 @@ bool SDK::UClass::IsChildOf(const SDK::UStruct* Base) const
 SDK::uint8 SDK::UBoolProperty::FieldMask()
 {
 	if (SDK::UE::GetEngineVersion() <= 4.24 || SDK::UE::GetFortniteVersion() >= 20)
-		return *(uint8_t*)(__int64(this) + (112 + 3));
+		return *(uint8_t*)(__int64(this) + (112 + 3 + 0));
 	else if (SDK::UE::GetEngineVersion() >= 4.25)
-		return *(uint8_t*)(__int64(this) + (120 + 3));
+		return *(uint8_t*)(__int64(this) + (120 + 3 + 0));
 }
 
 bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
@@ -321,9 +321,9 @@ bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
 
 void SDK::UBoolProperty::SetBitFieldValue(UObject* Object, bool NewVal)
 {
-	auto Addr = *reinterpret_cast<PlaceholderBitfield**>((__int64(Object) + this->Offset_Internal()));
+	auto Addr = (void*)((PlaceholderBitfield*)(__int64(Object) + this->Offset_Internal()));
 
-	auto BitField = Addr;
+	auto BitField = (PlaceholderBitfield*)Addr;
 
 
 	switch (FieldMask()) {

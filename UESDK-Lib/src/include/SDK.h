@@ -62,13 +62,11 @@ namespace SDK
 	{
 		extern std::unique_ptr<SDK::FUObjectArray> GObjects;
 		extern SDK::UEngine* GEngine;
-		extern SDK::UWorld* GWorld;
 		bool InitGObjects();
 		bool InitMemberOffsets();
 		bool InitFName();
 		bool SetupEngineVersion();
 		bool InitProcessEvent();
-		bool InitGWorld();
 		bool InitGEngine();
 	}
 	bool Init();

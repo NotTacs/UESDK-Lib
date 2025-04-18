@@ -51,11 +51,24 @@ namespace SDK
 		void SwitchLevel(SDK::FString URL);
 	};
 
+	class UNetDriver : public UObject
+	{
+	public:
+		
+	};
+
 	class UWorld : public UObject
 	{
 	public:
 		AFortGameStateAthena* GameState();
 		UGameInstance* OwningGameInstance();
+		UNetDriver*& NetDriver();
+	};
+
+	class UKismetSystemLibrary : public UObject
+	{
+	public:
+
 	};
 
 	class UKismetStringLibrary : public UObject
