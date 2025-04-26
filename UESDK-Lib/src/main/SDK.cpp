@@ -18,6 +18,7 @@ int SDK::MemberOffsets::UStruct_PostConstructLink = -1;
 int SDK::MemberOffsets::UStruct_ScriptObjectReferences = -1;
 int SDK::MemberOffsets::UProperty_Offset_Internal = -1;
 int SDK::MemberOffsets::UFunction_Func = -1;
+int SDK::MemberOffsets::UStruct_Size = -1;
 
 std::string SDK::UE::EngineVersion = "";
 std::unique_ptr<SDK::FUObjectArray> SDK::UE::Core::GObjects = nullptr;
@@ -72,6 +73,7 @@ bool SDK::UE::Core::InitMemberOffsets()
 {
 	MemberOffsets::UStruct_SuperStruct = SDK::UE::GetEngineVersion() >= 4.22 ? 0x40 : 0x30;
 	MemberOffsets::UStruct_Children = MemberOffsets::UStruct_SuperStruct + 0x8;
+	MemberOffsets::UStruct_Size = SDK::UE::GetFortniteVersion() >= 12.10 ? MemberOffsets::UStruct_Children + 0x10 : MemberOffsets::UStruct_Children + 0x8;
 	MemberOffsets::UStruct_MinAllignment = MemberOffsets::UStruct_Children + 0xC;
 	MemberOffsets::UStruct_Script = MemberOffsets::UStruct_Children + 0x10;
 	MemberOffsets::UStruct_PropertyLink = MemberOffsets::UStruct_SuperStruct + 0x30;

@@ -244,8 +244,8 @@ namespace SDK
 	{
 	public:
 		uint8 FieldMask();
-		bool ReadBitFieldValue(UObject* Object);
-		void SetBitFieldValue(UObject* Object, bool bValue);
+		bool ReadBitFieldValue(void* Object);
+		void SetBitFieldValue(void* Object, bool bValue);
 	};
 
 	class UClass : public UStruct

@@ -39,6 +39,7 @@ namespace SDK
 		extern int UStruct_ScriptObjectReferences;
 		extern int UProperty_Offset_Internal;
 		extern int UFunction_Func;
+		extern int UStruct_Size;
 	}
 
 

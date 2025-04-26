@@ -101,7 +101,7 @@ SDK::UField* SDK::UStruct::Children() const
 
 SDK::int32 SDK::UStruct::Size() const
 {
-	static int SizeOffset = SDK::MemberOffsets::UStruct_Children + 0x8;
+	static int SizeOffset = SDK::MemberOffsets::UStruct_Size;
 	return *reinterpret_cast<int32*>(__int64(this) + SizeOffset);
 }
 
@@ -288,7 +288,7 @@ SDK::uint8 SDK::UBoolProperty::FieldMask()
 		return *(uint8_t*)(__int64(this) + (120 + 3 + 0));
 }
 
-bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
+bool SDK::UBoolProperty::ReadBitFieldValue(void* Object)
 {
 	auto Addr = (void*)((PlaceholderBitfield*)(__int64(Object) + this->Offset_Internal()));
 
@@ -319,7 +319,7 @@ bool SDK::UBoolProperty::ReadBitFieldValue(UObject* Object)
 	return false;
 }
 
-void SDK::UBoolProperty::SetBitFieldValue(UObject* Object, bool NewVal)
+void SDK::UBoolProperty::SetBitFieldValue(void* Object, bool NewVal)
 {
 	auto Addr = (void*)((PlaceholderBitfield*)(__int64(Object) + this->Offset_Internal()));
 
