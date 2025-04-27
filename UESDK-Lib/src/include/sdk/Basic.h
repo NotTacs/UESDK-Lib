@@ -757,9 +757,6 @@ namespace SDK
 
 		return Offset;
 	}
-
-
-
 }
 
 #define DECLARE_PROP_WITH_OFFSET(ReturnType, ClassName, PropertyName) \

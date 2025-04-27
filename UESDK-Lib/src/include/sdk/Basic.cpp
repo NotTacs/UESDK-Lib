@@ -237,7 +237,7 @@ std::string SDK::UFunction::FunctionFlagsToString()
 {
 	std::string result;
 
-	auto& Flags = *(EFunctionFlags*)FunctionFlags();
+	auto Flags = (EFunctionFlags)FunctionFlags();
 
 	if (Flags & FUNC_BlueprintCallable) result += "FUNC_BlueprintCallable | ";
 	if (Flags & FUNC_BlueprintEvent) result += "FUNC_BlueprintEvent | ";

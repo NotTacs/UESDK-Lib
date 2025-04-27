@@ -59,6 +59,7 @@ namespace SDK
 	namespace UE::Memory
 	{
 		uintptr_t GetBaseAddress();
+		void* ResizeVirtualMemory(void* OldMemory, SIZE_T oldSize, size_t newSize);
 	}
 
 	namespace UE::Core

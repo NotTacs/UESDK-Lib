@@ -239,6 +239,18 @@ uintptr_t SDK::UE::Memory::GetBaseAddress()
 	return uintptr_t(GetModuleHandle(0));
 }
 
+void* SDK::UE::Memory::ResizeVirtualMemory(void* OldMemory, SIZE_T oldSize, size_t newSize)
+{
+	void* VirtualizedMemory = VirtualAlloc(nullptr, newSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if (!VirtualizedMemory)
+	{
+		return nullptr;
+	}
+	memcpy(VirtualizedMemory, OldMemory, oldSize); //copy old data to new
+	VirtualFree(OldMemory, 0, MEM_RELEASE);
+	return VirtualizedMemory;
+}
+
 float SDK::UE::GetFortniteVersion()
 {
 	size_t LastDot = EngineVersion.find('-', EngineVersion.find('-') + 1);
