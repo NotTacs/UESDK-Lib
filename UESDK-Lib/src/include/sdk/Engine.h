@@ -13,70 +13,95 @@ namespace SDK
 	class UEngine : public UObject
 	{
 	public:
-		UGameViewportClient* GameViewport();
+		//UGameViewportClient* GameViewport();
+		DECLARE_INLINEPROP_WITH_OFFSET(UGameViewportClient*, UEngine, GameViewport);
 	public:
+		DECLARE_STATIC_CLASS(UEngine);
 		static UEngine* GetEngine();
 	};
 
 	class UGameViewportClient : public UObject
 	{
 	public:
-		UWorld* World();
+		DECLARE_INLINEPROP_WITH_OFFSET(UWorld*, UGameViewportClient, World);
+	public:
+		DECLARE_STATIC_CLASS(UGameViewportClient);
 	};
 
 
 	class ULocalPlayer : public UObject
 	{
 	public:
-		APlayerController* PlayerController();
+		DECLARE_INLINEPROP_WITH_OFFSET(APlayerController*, ULocalPlayer, PlayerController);
+	public:
+		DECLARE_STATIC_CLASS(ULocalPlayer);
 	};
 
 	class UGameInstance : public UObject
 	{
 	public:
-		TArray<ULocalPlayer*>& LocalPlayers();
+		DECLARE_INLINEPROP_WITH_OFFSET(ULocalPlayer*, UGameInstance, LocalPlayers);
+	public:
+		DECLARE_STATIC_CLASS(UGameInstance);
 	};
 
 	class AActor : public UObject
 	{
+	private:
+
 	public:
 
 	public:
-		FTransform GetTransform();
+		DECLARE_STATIC_CLASS(AActor);
 	};
+
 
 	class APlayerController : public AActor
 	{
+	private:
+
 	public:
-		void SwitchLevel(SDK::FString URL);
+		DECLARE_STATIC_CLASS(APlayerController);
 	};
 
 	class UNetDriver : public UObject
 	{
 	public:
 		
+	public:
+		DECLARE_STATIC_CLASS(UNetDriver);
 	};
 
 	class UWorld : public UObject
 	{
 	public:
-		AFortGameStateAthena* GameState();
-		UGameInstance* OwningGameInstance();
-		UNetDriver*& NetDriver();
+		DECLARE_INLINEPROP_WITH_OFFSET(AFortGameStateAthena*, UWorld, GameState);
+		DECLARE_INLINEPROP_WITH_OFFSET(UGameInstance*, UWorld, OwningGameInstance);
+		DECLARE_INLINEPROP_WITH_OFFSET(UNetDriver*, UWorld, NetDriver);
+
+	public:
+		DECLARE_STATIC_CLASS(UWorld);
 	};
 
 	class UKismetSystemLibrary : public UObject
 	{
 	public:
 
+	public:
+		DECLARE_STATIC_CLASS(UKismetSystemLibrary);
 	};
 
 	class UKismetStringLibrary : public UObject
 	{
+	private:
+		struct KismetStringLibrary_ConvStringToName
+		{
+		public:
+			FString InString;
+			FName ReturnValue;
+		};
 	public:
-		static FName Conv_StringToName(const FString& InString);
-	public:
-		static UClass* StaticClass();
+		DECLARE_STATIC_CLASS(UKismetStringLibrary);
 	};
 
 	enum class EFastArraySerializerDeltaFlags : uint8

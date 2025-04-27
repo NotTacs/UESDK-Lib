@@ -9,6 +9,9 @@ namespace SDK
 	class FName;
 	class UProperty;
 	class UFunction;
+	class TFieldIterator;
+	template<typename ArrayType>
+	class TIterator;
 
 	class FOutputDevice
 	{
@@ -63,6 +66,48 @@ namespace SDK
 		RF_MirroredGarbage = 0x40000000,		// This object is modified in memory, and not in the source data.
 		RF_AllocatedInSharedPage = 0x80000000,		// This object is being allocated in a shared memory page, so will be in a shared memory pool.
 	};
+
+	enum EFunctionFlags : uint32
+	{
+		// Function flags.
+		FUNC_None = 0x00000000,
+
+		FUNC_Final = 0x00000001,	// Function is final (prebindable, non-overridable function).
+		FUNC_RequiredAPI = 0x00000002,	// Indicates this function is DLL exported/imported.
+		FUNC_BlueprintAuthorityOnly = 0x00000004,   // Function will only run if the object has network authority
+		FUNC_BlueprintCosmetic = 0x00000008,   // Function is cosmetic in nature and should not be invoked on dedicated servers
+		// FUNC_				= 0x00000010,   // unused.
+		// FUNC_				= 0x00000020,   // unused.
+		FUNC_Net = 0x00000040,   // Function is network-replicated.
+		FUNC_NetReliable = 0x00000080,   // Function should be sent reliably on the network.
+		FUNC_NetRequest = 0x00000100,	// Function is sent to a net service
+		FUNC_Exec = 0x00000200,	// Executable from command line.
+		FUNC_Native = 0x00000400,	// Native function.
+		FUNC_Event = 0x00000800,   // Event function.
+		FUNC_NetResponse = 0x00001000,   // Function response from a net service
+		FUNC_Static = 0x00002000,   // Static function.
+		FUNC_NetMulticast = 0x00004000,	// Function is networked multicast Server -> All Clients
+		FUNC_UbergraphFunction = 0x00008000,   // Function is used as the merge 'ubergraph' for a blueprint, only assigned when using the persistent 'ubergraph' frame
+		FUNC_MulticastDelegate = 0x00010000,	// Function is a multi-cast delegate signature (also requires FUNC_Delegate to be set!)
+		FUNC_Public = 0x00020000,	// Function is accessible in all classes (if overridden, parameters must remain unchanged).
+		FUNC_Private = 0x00040000,	// Function is accessible only in the class it is defined in (cannot be overridden, but function name may be reused in subclasses.  IOW: if overridden, parameters don't need to match, and Super.Func() cannot be accessed since it's private.)
+		FUNC_Protected = 0x00080000,	// Function is accessible only in the class it is defined in and subclasses (if overridden, parameters much remain unchanged).
+		FUNC_Delegate = 0x00100000,	// Function is delegate signature (either single-cast or multi-cast, depending on whether FUNC_MulticastDelegate is set.)
+		FUNC_NetServer = 0x00200000,	// Function is executed on servers (set by replication code if passes check)
+		FUNC_HasOutParms = 0x00400000,	// function has out (pass by reference) parameters
+		FUNC_HasDefaults = 0x00800000,	// function has structs that contain defaults
+		FUNC_NetClient = 0x01000000,	// function is executed on clients
+		FUNC_DLLImport = 0x02000000,	// function is imported from a DLL
+		FUNC_BlueprintCallable = 0x04000000,	// function can be called from blueprint code
+		FUNC_BlueprintEvent = 0x08000000,	// function can be overridden/implemented from a blueprint
+		FUNC_BlueprintPure = 0x10000000,	// function can be called from blueprint code, and is also pure (produces no side effects). If you set this, you should set FUNC_BlueprintCallable as well.
+		FUNC_EditorOnly = 0x20000000,	// function can only be called from an editor scrippt.
+		FUNC_Const = 0x40000000,	// function can be called from blueprint code, and only reads state (never writes state)
+		FUNC_NetValidate = 0x80000000,	// function must supply a _Validate implementation
+
+		FUNC_AllFlags = 0xFFFFFFFF,
+	};
+
 
 	/**
 	* Enum which specifies the mode in which full object names are constructed
@@ -199,6 +244,8 @@ namespace SDK
 		}
 
 		bool IsDefaultObject();
+
+		std::string FlagsToString();
 	};
 
 	class UObject : public UObjectBaseUtility
@@ -227,7 +274,7 @@ namespace SDK
 		UProperty* PostConstructLink() const;
 
 	public:
-		UProperty* FindPropertyByName(std::string PropertyName, bool bUseNext = false);
+		UProperty* FindPropertyByName(std::string PropertyName);
 		UFunction* FindFunctionByName(std::string FunctionName);
 	};
 
@@ -256,12 +303,23 @@ namespace SDK
 		bool IsChildOf(const UStruct* Base) const;
 	};
 
+	class UScriptStruct : public UStruct
+	{
+	public:
+
+	};
+
 	class UFunction : public UStruct
 	{
 	public:
 		using FNativeFuncPtr = void(*)(UObject* Context, void* TheStack, void* Result);
 
 		FNativeFuncPtr& Func();
+		uint8& FunctionFlags();
+
+	public:
+		std::string FunctionFlagsToString();
+		
 	};
 
 	struct FUObjectItem
@@ -472,7 +530,7 @@ namespace SDK
 				{
 					if (Index < MaxElements)
 					{
-						SDK::FUObjectItem* Chunk = Objects[ChunkIndex];
+						FUObjectItem* Chunk = Objects[ChunkIndex];
 						if (Chunk)
 						{
 							return Chunk + WithinChunkIndex;
@@ -658,15 +716,28 @@ namespace SDK
 	public:
 	};
 
-	// This function is used to get the value of a property in a class
-	template <typename T>
-	T GET_PROPERTY_VALUE(SDK::UObject* Object, const char* PropertyName)
+	UClass* StaticClassImpl(const char* ClassName);
+
+#define DECLARE_STATIC_CLASS(ClassName) \
+    static UClass* StaticClass() \
+    { \
+        return StaticClassImpl(#ClassName + 1); \
+    }
+
+#define FIND_PROPERTY_BY_NAME(ClassName, PropertyName) \
+    ClassName::StaticClass()->FindPropertyByName((#PropertyName))
+
+	template<typename Class = void>
+	int GetPropertyOffset(Class* Object, const std::string& PropertyName)
 	{
 		static std::unordered_map<std::string, int> OffsetCache;
 
-		if (!Object) return T();
+		if (!Object)
+		{
+			return -1;
+		}
 
-		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
+		std::string Key = Class::StaticClass()->GetName().ToString() + "::" + PropertyName;
 
 		int Offset = -1;
 		auto It = OffsetCache.find(Key);
@@ -676,103 +747,10 @@ namespace SDK
 		}
 		else
 		{
-			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
-			if (!Property) return T();
+			auto Property = Class::StaticClass()->FindPropertyByName(PropertyName);
+			if (!Property) return -1;
 
 			Offset = Property->Offset_Internal();
-			if (Offset <= 0) return T();
-
-			OffsetCache[Key] = Offset;
-		}
-
-		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
-	}
-
-	// This function is used to get the value of a property in a class
-	template <typename T>
-	T& GET_PROPERTY_VALUEREF(SDK::UObject* Object, const char* PropertyName)
-	{
-		static std::unordered_map<std::string, int> OffsetCache;
-
-		T* Value = nullptr;
-
-		if (!Object) return *Value;
-
-		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
-
-		int Offset = -1;
-		auto It = OffsetCache.find(Key);
-		if (It != OffsetCache.end())
-		{
-			Offset = It->second;
-		}
-		else
-		{
-			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
-			if (!Property) return *Value;
-
-			Offset = Property->Offset_Internal();
-			if (Offset <= 0) return *Value;
-
-			OffsetCache[Key] = Offset;
-		}
-
-		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
-	}
-
-	// This function is used to get the offset of a property in a class
-	template <typename T>
-	T GET_PROPERTY_OFFSET(SDK::UObject* Object, const char* PropertyName)
-	{
-		static std::unordered_map<std::string, int> OffsetCache;
-
-		if (!Object) return T();
-
-		std::string Key = Object->GetClass()->GetName().ToString() + "::" + PropertyName;
-
-		int Offset = -1;
-		auto It = OffsetCache.find(Key);
-		if (It != OffsetCache.end())
-		{
-			Offset = It->second;
-		}
-		else
-		{
-			auto Property = Object->GetClass()->FindPropertyByName(PropertyName);
-			if (!Property) return T();
-
-			Offset = Property->Offset_Internal();
-			if (Offset <= 0) return T();
-
-			OffsetCache[Key] = Offset;
-		}
-
-		return *reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(Object) + Offset);
-	}
-
-	// This function is used to get the offset of a property in a struct/scriptstruct
-	template <typename V>
-	int GET_PROPERTYSTRUCT_OFFSET(V* Object, const char* PropertyName)
-	{
-		static std::unordered_map<std::string, int> OffsetCache;
-
-		if (!Object) return 0;
-
-		std::string Key = Object->GetScriptClass()->GetName().ToString() + "::" + PropertyName;
-
-		int Offset = -1;
-		auto It = OffsetCache.find(Key);
-		if (It != OffsetCache.end())
-		{
-			Offset = It->second;
-		}
-		else
-		{
-			auto Property = Object->GetScriptClass()->FindPropertyByName(PropertyName, true);
-			if (!Property) return 0;
-
-			Offset = Property->Offset_Internal();
-			if (Offset <= 0) return 0;
 
 			OffsetCache[Key] = Offset;
 		}
@@ -780,5 +758,28 @@ namespace SDK
 		return Offset;
 	}
 
-	UClass* StaticClassImpl(const char* ClassName);
+
+
+}
+
+#define DECLARE_PROP_WITH_OFFSET(ReturnType, ClassName, PropertyName) \
+ReturnType& ClassName::PropertyName() \
+{ \
+    static int32 Offset = -1; \
+    if (Offset == -1) \
+    { \
+        Offset = GetPropertyOffset<ClassName>(this, #PropertyName); \
+    } \
+    return *reinterpret_cast<ReturnType*>(reinterpret_cast<uint64>(this) + Offset); \
+}
+
+#define DECLARE_INLINEPROP_WITH_OFFSET(ReturnType, ClassName, PropertyName) \
+inline ReturnType& PropertyName() \
+{ \
+    static int32 Offset = -1; \
+    if (Offset == -1) \
+    { \
+        Offset = GetPropertyOffset<ClassName>(this, #PropertyName); \
+    } \
+    return *reinterpret_cast<ReturnType*>(reinterpret_cast<uint64>(this) + Offset); \
 }

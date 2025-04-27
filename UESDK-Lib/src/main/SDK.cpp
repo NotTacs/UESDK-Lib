@@ -19,7 +19,7 @@ int SDK::MemberOffsets::UStruct_ScriptObjectReferences = -1;
 int SDK::MemberOffsets::UProperty_Offset_Internal = -1;
 int SDK::MemberOffsets::UFunction_Func = -1;
 int SDK::MemberOffsets::UStruct_Size = -1;
-
+int SDK::MemberOffsets::UProperty_NextProperty = -1;
 std::string SDK::UE::EngineVersion = "";
 std::unique_ptr<SDK::FUObjectArray> SDK::UE::Core::GObjects = nullptr;
 SDK::UEngine* SDK::UE::Core::GEngine = nullptr;
@@ -184,13 +184,13 @@ bool SDK::UE::Core::InitGEngine()
 	return true;
 }
 
-bool SDK::Init()
+SDK::ESDKStatus SDK::Init()
 {
 	if (!SDK::UE::Core::InitGObjects())
 	{
-		std::cout << "Failed to initalize GObjects" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_GOBJECTS_NOT_FOUND;
 	}
+
 	Memcury::Scanner Scanner = Memcury::Scanner::FindPattern("FF 95 ? ? ? ? 48 8B 6C 24");
 
 	if (Scanner.Get() == 0)
@@ -204,38 +204,34 @@ bool SDK::Init()
 	}
 
 	if (Scanner.Get() == 0)
-		return false;
+		return SDK::SDK_STATUS_MEMBER_OFFSETS_NOT_FOUND;
 
 	MemberOffsets::UFunction_Func = *Scanner.AbsoluteOffset(2).GetAs<int*>();
+
 	if (!SDK::UE::Core::InitFName())
 	{
-		std::cout << "Failed to initalize FName" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_FNAME_NOT_FOUND;
 	}
 	if (!SDK::UE::Core::SetupEngineVersion())
 	{
-		std::cout << "Failed to initalize EngineVersion" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_ENGINE_VERSION_NOT_FOUND;
 	}
 	if (!SDK::UE::Core::InitMemberOffsets())
 	{
-		std::cout << "Failed to initalize MemberOffsets" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_MEMBER_OFFSETS_NOT_FOUND;
 	}
 
 	if (!SDK::UE::Core::InitProcessEvent())
 	{
-		std::cout << "Failed to initalize ProcessEvent" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_PROCESS_EVENT_NOT_FOUND;
 	}
 
 	if (!SDK::UE::Core::InitGEngine())
 	{
-		std::cout << "Failed to initalize GEngine" << std::endl;
-		return false;
+		return ESDKStatus::SDK_STATUS_GOBJECTS_NOT_FOUND;
 	}
 
-	return true;
+	return ESDKStatus::SDK_STATUS_OK;
 }
 
 uintptr_t SDK::UE::Memory::GetBaseAddress()

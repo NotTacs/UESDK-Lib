@@ -15,6 +15,7 @@
 #include "memcury.h"
 #include "sdk/Basic.h"
 #include "sdk/Engine.h"
+#include "sdk/Iterator.h"
 
 namespace SDK
 {
@@ -38,6 +39,7 @@ namespace SDK
 		extern int UStruct_PostConstructLink;
 		extern int UStruct_ScriptObjectReferences;
 		extern int UProperty_Offset_Internal;
+		extern int UProperty_NextProperty;
 		extern int UFunction_Func;
 		extern int UStruct_Size;
 	}
@@ -70,5 +72,16 @@ namespace SDK
 		bool InitProcessEvent();
 		bool InitGEngine();
 	}
-	bool Init();
+
+	enum ESDKStatus : int32_t
+	{
+		SDK_STATUS_OK,
+		SDK_STATUS_GOBJECTS_NOT_FOUND,
+		SDK_STATUS_FNAME_NOT_FOUND,
+		SDK_STATUS_ENGINE_VERSION_NOT_FOUND,
+		SDK_STATUS_MEMBER_OFFSETS_NOT_FOUND,
+		SDK_STATUS_PROCESS_EVENT_NOT_FOUND
+	};
+
+	ESDKStatus Init();
 }

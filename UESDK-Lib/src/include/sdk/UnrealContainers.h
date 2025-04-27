@@ -135,7 +135,6 @@ namespace UC
 		ElementType* Data;
 		int32 ArrayNum;
 		int32 ArrayMax;
-
 	public:
 		/**
 		* Helper function for returning a typed pointer to the first array entry.

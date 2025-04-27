@@ -145,58 +145,34 @@ SDK::UProperty* SDK::UStruct::PostConstructLink() const
 SDK::int32 SDK::UProperty::Offset_Internal()
 {
 	static int OffsetInternalOffset = SDK::MemberOffsets::UProperty_Offset_Internal;
-	if (!this)
-		return 0;
 	return *reinterpret_cast<int32*>(__int64(this) + OffsetInternalOffset);
 }
 
 SDK::UProperty* SDK::UProperty::PropertyLinkNext()
 {
-	static int PropertyLinkNext = SDK::MemberOffsets::UProperty_Offset_Internal + 12;
+	static int PropertyLinkNext = SDK::MemberOffsets::UProperty_Offset_Internal + 0xC;
 	return *reinterpret_cast<UProperty**>(__int64(this) + PropertyLinkNext);
 }
 
 std::string SDK::UProperty::GetPropName()
 {
-	if (!this) return "INVALID";
 	return SDK::UE::GetFortniteVersion() >= 12.1 ? (*(FName*)(__int64(this) + 0x28)).ToString().ToString() : GetName().ToString();
 }
 
-SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool bUseNext)
+SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName)
 {
 	UProperty* result = nullptr;
-	if (bUseNext)
-	{
-		for (const UStruct* Class = this; Class; Class = Class->SuperStruct())
-		{
-			for (UField* Next = Class->Children(); Next != nullptr; Next = Next->Next())
-			{
-				if (!Next->GetClass()) continue;
-				if (Next->GetClass() == SDK::UE::Core::GObjects->FindObjectFast("Function")) continue;
-				if (Next->GetName() == PropertyName)
-				{
-					result = reinterpret_cast<UProperty*>(Next);
-				}
-			}
-		}
 
-		return result;
-	}
+	TFieldIterator Iterator(this);
 
-	result = this->PropertyLink();
-	if (!result)
+	while (Iterator.IsValid())
 	{
-		std::cout << "Failed to get valid PropertyLink from Class: " << this->GetName().ToString() << std::endl;
-		return nullptr;
-	}
-	while (result->GetPropName() != PropertyName)
-	{
-		result = result->PropertyLinkNext();
-		if (!result)
+		if (Iterator.GetCurrent()->GetPropName() == PropertyName)
 		{
-			std::cout << "Failed to get NextProperty from PropertyLink in Class: " << this->GetName().ToString() << std::endl;
-			return nullptr;
+			result = Iterator.GetCurrent();
+			break;
 		}
+		Iterator.Next();
 	}
 
 	return result;
@@ -251,16 +227,97 @@ SDK::UFunction::FNativeFuncPtr& SDK::UFunction::Func()
 	return *reinterpret_cast<FNativeFuncPtr*>(__int64(this) + SDK::MemberOffsets::UFunction_Func);
 }
 
+SDK::uint8& SDK::UFunction::FunctionFlags()
+{
+	static int FunctionFlagsOffset = SDK::MemberOffsets::UFunction_Func - 0x28;
+	return *reinterpret_cast<uint8*>(__int64(this) + FunctionFlagsOffset);
+}
+
+std::string SDK::UFunction::FunctionFlagsToString()
+{
+	std::string result;
+
+	auto& Flags = *(EFunctionFlags*)FunctionFlags();
+
+	if (Flags & FUNC_BlueprintCallable) result += "FUNC_BlueprintCallable | ";
+	if (Flags & FUNC_BlueprintEvent) result += "FUNC_BlueprintEvent | ";
+	if (Flags & FUNC_Exec) result += "FUNC_Exec | ";
+	if (Flags & FUNC_Net) result += "FUNC_Net | ";
+	if (Flags & FUNC_NetClient) result += "FUNC_NetClient | ";
+	if (Flags & FUNC_NetServer) result += "FUNC_NetServer | ";
+	if (Flags & FUNC_NetMulticast) result += "FUNC_NetMulticast | ";
+	if (Flags & FUNC_Private) result += "FUNC_Private | ";
+	if (Flags & FUNC_Protected) result += "FUNC_Protected | ";
+	if (Flags & FUNC_Public) result += "FUNC_Public | ";
+	if (Flags & FUNC_BlueprintAuthorityOnly) result += "FUNC_BlueprintAuthorityOnly | ";
+	if (Flags & FUNC_NetResponse) result += "FUNC_NetResponse | ";
+	if (Flags & FUNC_Static) result += "FUNC_Static | ";
+	if (Flags & FUNC_Native) result += "FUNC_Native | ";
+	if (Flags & FUNC_Const) result += "FUNC_Const | ";
+	if (Flags & FUNC_AllFlags) result += "FUNC_AllFlags | ";
+
+	if (!result.empty() && result.substr(result.length() - 3) == " | ")
+	{
+		result = result.substr(0, result.length() - 3);
+	}
+
+	return result;
+}
+
 SDK::UObject* SDK::UClass::GetDefaultObj()
 {
 	std::string Name = "Default__" + this->GetName().ToString();
-	std::cout << Name << std::endl;
 	return SDK::UE::Core::GObjects->FindObjectFast(Name);
 }
 
 bool SDK::UObjectBaseUtility::IsDefaultObject()
 {
 	return (GetFlags() & EObjectFlags::RF_ClassDefaultObject);
+}
+
+std::string SDK::UObjectBaseUtility::FlagsToString()
+{
+	std::string result;
+
+	auto& Flags = GetFlags();
+
+	if (Flags & RF_Public) result += "RF_Public | ";
+	if (Flags & RF_Standalone) result += "RF_Standalone | ";
+	if (Flags & RF_MarkAsNative) result += "RF_MarkAsNative | ";
+	if (Flags & RF_Transactional) result += "RF_Transactional | ";
+	if (Flags & RF_ClassDefaultObject) result += "RF_ClassDefaultObject | ";
+	if (Flags & RF_ArchetypeObject) result += "RF_ArchetypeObject | ";
+	if (Flags & RF_Transient) result += "RF_Transient | ";
+	if (Flags & RF_MarkAsRootSet) result += "RF_MarkAsRootSet | ";
+	if (Flags & RF_TagGarbageTemp) result += "RF_TagGarbageTemp | ";
+	if (Flags & RF_NeedInitialization) result += "RF_NeedInitialization | ";
+	if (Flags & RF_NeedLoad) result += "RF_NeedLoad | ";
+	if (Flags & RF_KeepForCooker) result += "RF_KeepForCooker | ";
+	if (Flags & RF_NeedPostLoad) result += "RF_NeedPostLoad | ";
+	if (Flags & RF_NeedPostLoadSubobjects) result += "RF_NeedPostLoadSubobjects | ";
+	if (Flags & RF_NewerVersionExists) result += "RF_NewerVersionExists | ";
+	if (Flags & RF_BeginDestroyed) result += "RF_BeginDestroyed | ";
+	if (Flags & RF_FinishDestroyed) result += "RF_FinishDestroyed | ";
+	if (Flags & RF_BeingRegenerated) result += "RF_BeingRegenerated | ";
+	if (Flags & RF_DefaultSubObject) result += "RF_DefaultSubObject | ";
+	if (Flags & RF_WasLoaded) result += "RF_WasLoaded | ";
+	if (Flags & RF_TextExportTransient) result += "RF_TextExportTransient | ";
+	if (Flags & RF_LoadCompleted) result += "RF_LoadCompleted | ";
+	if (Flags & RF_InheritableComponentTemplate) result += "RF_InheritableComponentTemplate | ";
+	if (Flags & RF_DuplicateTransient) result += "RF_DuplicateTransient | ";
+	if (Flags & RF_StrongRefOnFrame) result += "RF_StrongRefOnFrame | ";
+	if (Flags & RF_NonPIEDuplicateTransient) result += "RF_NonPIEDuplicateTransient | ";
+	if (Flags & RF_WillBeLoaded) result += "RF_WillBeLoaded | ";
+	if (Flags & RF_HasExternalPackage) result += "RF_HasExternalPackage | ";
+	if (Flags & RF_MirroredGarbage) result += "RF_MirroredGarbage | ";
+	if (Flags & RF_AllocatedInSharedPage) result += "RF_AllocatedInSharedPage | ";
+
+	if (!result.empty() && result.substr(result.length() - 3) == " | ")
+	{
+		result = result.substr(0, result.length() - 3);
+	}
+
+	return result;
 }
 
 bool SDK::UClass::IsChildOf(const SDK::UStruct* Base) const
@@ -294,26 +351,24 @@ bool SDK::UBoolProperty::ReadBitFieldValue(void* Object)
 
 	auto BitField = (PlaceholderBitfield*)Addr;
 
-	switch (FieldMask())
+	uint8 Mask = FieldMask();
+
+	for (int i = 0; i < 8; ++i)
 	{
-	case 0x1:
-		return BitField->First;
-	case 0x2:
-		return BitField->Second;
-	case 0x4:
-		return BitField->Third;
-	case 0x8:
-		return BitField->Fourth;
-	case 0x10:
-		return BitField->Fifth;
-	case 0x20:
-		return BitField->Sixth;
-	case 0x40:
-		return BitField->Seventh;
-	case 0x80:
-		return BitField->Eighth;
-	case 0xFF:
-		return *(bool*)BitField;
+		if (Mask == (1 << i))
+		{
+			switch (i)
+			{
+			case 0: return BitField->First;
+			case 1: return BitField->Second;
+			case 2: return BitField->Third;
+			case 3: return BitField->Fourth;
+			case 4: return BitField->Fifth;
+			case 5: return BitField->Sixth;
+			case 6: return BitField->Seventh;
+			case 7: return BitField->Eighth;
+			}
+		}
 	}
 
 	return false;
@@ -321,21 +376,26 @@ bool SDK::UBoolProperty::ReadBitFieldValue(void* Object)
 
 void SDK::UBoolProperty::SetBitFieldValue(void* Object, bool NewVal)
 {
-	auto Addr = (void*)((PlaceholderBitfield*)(__int64(Object) + this->Offset_Internal()));
+	auto BitField = *reinterpret_cast<PlaceholderBitfield**>(__int64(Object) + Offset_Internal());
 
-	auto BitField = (PlaceholderBitfield*)Addr;
+	uint8 Mask = FieldMask();
 
-
-	switch (FieldMask()) {
-	case 0x1:  BitField->First = NewVal; break;
-	case 0x2:  BitField->Second = NewVal; break;
-	case 0x4:  BitField->Third = NewVal; break;
-	case 0x8:  BitField->Fourth = NewVal; break;
-	case 0x10: BitField->Fifth = NewVal; break;
-	case 0x20: BitField->Sixth = NewVal; break;
-	case 0x40: BitField->Seventh = NewVal; break;
-	case 0x80: BitField->Eighth = NewVal; break;
-	case 0xFF: *(bool*)BitField = NewVal; break;
+	for (int i = 0; i < 8; ++i)
+	{
+		if (Mask == (1 << i))
+		{
+			switch (i)
+			{
+			case 0: BitField->First = NewVal; break;
+			case 1: BitField->Second = NewVal; break;
+			case 2: BitField->Third = NewVal; break;
+			case 3: BitField->Fourth = NewVal; break;
+			case 4: BitField->Fifth = NewVal; break;
+			case 5: BitField->Sixth = NewVal; break;
+			case 6: BitField->Seventh = NewVal; break;
+			case 7: BitField->Eighth = NewVal; break;
+			}
+		}
 	}
 }
 
