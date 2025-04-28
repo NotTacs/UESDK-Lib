@@ -86,7 +86,6 @@ namespace SDK
 	class UKismetSystemLibrary : public UObject
 	{
 	public:
-
 	public:
 		DECLARE_STATIC_CLASS(UKismetSystemLibrary);
 	};

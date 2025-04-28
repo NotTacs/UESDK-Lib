@@ -154,14 +154,151 @@ SDK::UProperty* SDK::UProperty::PropertyLinkNext()
 	return *reinterpret_cast<UProperty**>(__int64(this) + PropertyLinkNext);
 }
 
+int SDK::UProperty::ElementSize()
+{
+	static int ElementSizeOffset = SDK::MemberOffsets::UProperty_Offset_Internal - 0x10;
+	return *reinterpret_cast<int*>(__int64(this) + ElementSizeOffset);
+}
+
+SDK::UClass* SDK::UObjectProperty::PropertyClass()
+{
+	static int PropertyClassOffset = (SDK::MemberOffsets::UProperty_Offset_Internal + 0x2C);
+	return *reinterpret_cast<UClass**>(__int64(this) + PropertyClassOffset);
+}
+
+SDK::UClass* SDK::USoftObjectProperty::PropertyClass()
+{
+	static int PropertyClassOffset = (SDK::MemberOffsets::UProperty_Offset_Internal + 0x2C);
+	return *reinterpret_cast<UClass**>(__int64(this) + PropertyClassOffset);
+}
+
+SDK::UProperty* SDK::UArrayProperty::Inner()
+{
+	static int InnerOffset = (SDK::MemberOffsets::UProperty_Offset_Internal + 0x2C);
+	return *reinterpret_cast<UProperty**>(__int64(this) + InnerOffset);
+}
+
+SDK::UScriptStruct* SDK::UStructProperty::Struct()
+{
+	static int StructOffset = (SDK::MemberOffsets::UProperty_Offset_Internal + 0x2C);
+	return *reinterpret_cast<UScriptStruct**>(__int64(this) + StructOffset);
+}
+
+
+
 std::string SDK::UProperty::GetPropName()
 {
 	return SDK::UE::GetFortniteVersion() >= 12.1 ? (*(FName*)(__int64(this) + 0x28)).ToString().ToString() : GetName().ToString();
 }
 
-SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName)
+std::string SDK::UProperty::GetPropCPPType()
+{
+	if (UBoolProperty* BoolProp = CastField<UBoolProperty>(this))
+	{
+		return "bool";
+	}
+	else if (UIntProperty* IntProp = CastField<UIntProperty>(this))
+	{
+		return "int32_t";
+	}
+	else if (UFloatProperty* FloatProp = CastField<UFloatProperty>(this))
+	{
+		return "float";
+	}
+	else if (UNameProperty* NameProp = CastField<UNameProperty>(this))
+	{
+		return "FName";
+	}
+	else if (UStrProperty* StrProp = CastField<UStrProperty>(this))
+	{
+		return "FString";
+	}
+	else if (UObjectProperty* ObjProp = CastField<UObjectProperty>(this))
+	{
+		FString ObjClassName = ObjProp->PropertyClass()->GetName();
+		return std::string("class ") + ObjClassName.ToString() + "*";
+	}
+	else if (UStructProperty* StructProp = CastField<UStructProperty>(this))
+	{
+		FString StructName = StructProp->Struct()->GetName();
+		return std::string("struct ") + StructName.ToString();
+	}
+	else if (UByteProperty* ByteProp = CastField<UByteProperty>(this))
+	{
+		return "uint8_t";
+	}
+	else if (UUInt16Property* UInt16Prop = CastField<UUInt16Property>(this))
+	{
+		return "uint16_t";
+	}
+	else if (UUInt32Property* UInt32Prop = CastField<UUInt32Property>(this))
+	{
+		return "uint32_t";
+	}
+	else if (UUInt64Property* UInt64Prop = CastField<UUInt64Property>(this))
+	{
+		return "uint64_t";
+	}
+	else if (UInt8Property* Int8Prop = CastField<UInt8Property>(this))
+	{
+		return "int8_t";
+	}
+	else if (UInt16Property* Int16Prop = CastField<UInt16Property>(this))
+	{
+		return "int16_t";
+	}
+	else if (UInt64Property* Int64Prop = CastField<UInt64Property>(this))
+	{
+		return "int64_t";
+	}
+	else if (USoftObjectProperty* SoftObjProp = CastField<USoftObjectProperty>(this))
+	{
+		FString ObjClassName = SoftObjProp->PropertyClass()->GetName();
+		return std::string("TSoftObjectPtr<class ") + ObjClassName.ToString() + ">";
+	}
+	else if (UArrayProperty* ArrayProp = CastField<UArrayProperty>(this))
+	{
+		std::string InnerType = ArrayProp->Inner()->GetPropCPPType();
+		return std::string("TArray<") + InnerType + ">";
+	}
+	
+	return "uint8 " + this->GetPropName() + "[" + std::to_string(this->Offset_Internal()) + "]; /* Failed to get property */";
+}
+
+SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool bUseNext)
 {
 	UProperty* result = nullptr;
+
+	if (bUseNext)
+	{
+		if (this->IsA(UFunction::StaticClass()))
+		{
+			for (UField* Next = this->Children(); Next != nullptr; Next = Next->Next())
+			{
+				UProperty* NextProp = reinterpret_cast<UProperty*>(Next);
+				std::cout << NextProp->GetPropName() << std::endl;
+				result = NextProp;
+				if (NextProp->GetPropName() == PropertyName)
+					return NextProp;
+			}
+			return result;
+		}
+
+		for (UStruct* Struct = this; Struct != nullptr; Struct = Struct->SuperStruct())
+		{
+			for (UField* Next = Struct->Children(); Next != nullptr; Next = Next->Next())
+			{
+				if (!Next->GetClass()) continue;
+				if (Next->IsA<UFunction>()) continue;
+				UProperty* NextProp = reinterpret_cast<UProperty*>(Next);
+				result = NextProp;
+				if (NextProp->GetPropName() == PropertyName)
+					return result;
+			}
+		}
+
+		return result;
+	}
 
 	TFieldIterator Iterator(this);
 
@@ -227,17 +364,17 @@ SDK::UFunction::FNativeFuncPtr& SDK::UFunction::Func()
 	return *reinterpret_cast<FNativeFuncPtr*>(__int64(this) + SDK::MemberOffsets::UFunction_Func);
 }
 
-SDK::uint8& SDK::UFunction::FunctionFlags()
+SDK::uint32& SDK::UFunction::FunctionFlags()
 {
 	static int FunctionFlagsOffset = SDK::MemberOffsets::UFunction_Func - 0x28;
-	return *reinterpret_cast<uint8*>(__int64(this) + FunctionFlagsOffset);
+	return *reinterpret_cast<uint32*>(__int64(this) + FunctionFlagsOffset);
 }
 
 std::string SDK::UFunction::FunctionFlagsToString()
 {
 	std::string result;
 
-	auto Flags = (EFunctionFlags)FunctionFlags();
+	auto Flags = FunctionFlags();
 
 	if (Flags & FUNC_BlueprintCallable) result += "FUNC_BlueprintCallable | ";
 	if (Flags & FUNC_BlueprintEvent) result += "FUNC_BlueprintEvent | ";
@@ -407,7 +544,7 @@ SDK::UClass* SDK::FSoftObjectPath::GetStructClass()
 	return Class;
 }
 
-SDK::UClass* SDK::StaticClassImpl(const char* ClassName)
+class SDK::UClass* SDK::StaticClassImpl(const char* ClassName)
 {
 	static std::unordered_map<std::string, SDK::UClass*> ClassCache;
 	auto It = ClassCache.find(ClassName);

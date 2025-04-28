@@ -40,4 +40,3 @@ void SDK::FFrame::IncrementCode()
 {
 	Code = (uint8_t*)(__int64(Code) + (bool)Code);
 }
-

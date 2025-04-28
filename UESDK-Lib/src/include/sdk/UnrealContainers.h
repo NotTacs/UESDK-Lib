@@ -12,6 +12,7 @@ namespace UC
 	typedef	int16_t int16;
 	typedef	int8_t int8;
 	typedef	int64_t int64;
+	typedef char UTF8CHAR;
 
 	/** Chooses between two different classes based on a boolean. */
 	template<bool Predicate, typename TrueClass, typename FalseClass>
@@ -634,4 +635,5 @@ namespace UC
 			return Stream << Str.ToString();
 		}
 	};
+
 }

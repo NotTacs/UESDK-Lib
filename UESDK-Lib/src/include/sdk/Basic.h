@@ -10,8 +10,24 @@ namespace SDK
 	class UProperty;
 	class UFunction;
 	class TFieldIterator;
+	class TNextIterator;
 	template<typename ArrayType>
 	class TIterator;
+
+	class UClass* StaticClassImpl(const char* ClassName);
+
+	template<typename To, typename From>
+	FORCEINLINE To* CastField(From* Src)
+	{
+		if (!Src)
+			return nullptr;
+
+		if (Src->IsA(To::StaticClass()))
+			return static_cast<To*>(Src);
+
+		return nullptr;
+	}
+
 
 	class FOutputDevice
 	{
@@ -274,17 +290,25 @@ namespace SDK
 		UProperty* PostConstructLink() const;
 
 	public:
-		UProperty* FindPropertyByName(std::string PropertyName);
+		UProperty* FindPropertyByName(std::string PropertyName, bool bUseNext = false); /*didn't know next was needed but it is*/
 		UFunction* FindFunctionByName(std::string FunctionName);
 	};
 
 	class UProperty : public UField
 	{
 	public:
+		int ElementSize();
 		int32 Offset_Internal();
 		UProperty* PropertyLinkNext();
+
 	public:
 		std::string GetPropName();
+		std::string GetPropCPPType();
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("Property");
+		}
 	};
 
 	class UBoolProperty : public UProperty
@@ -293,6 +317,174 @@ namespace SDK
 		uint8 FieldMask();
 		bool ReadBitFieldValue(void* Object);
 		void SetBitFieldValue(void* Object, bool bValue);
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("BoolProperty");
+		}
+	};
+
+	class UIntProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("IntProperty");
+		}
+	};
+
+	class UFloatProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("FloatProperty");
+		}
+	};
+
+	class UNameProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("NameProperty");
+		}
+	};
+
+	class UStrProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("StrProperty");
+		}
+	};
+
+	class UObjectProperty : public UProperty
+	{
+	public:
+		UClass* PropertyClass();
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("ObjectProperty");
+		}
+	};
+
+	class UClassProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("ClassProperty");
+		}
+	};
+
+	class UStructProperty : public UProperty
+	{
+	public:
+		class UScriptStruct* Struct();
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("StructProperty");
+		}
+	};
+
+	class UByteProperty : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("ByteProperty");
+		}
+	};
+
+	class UUInt16Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("UInt16Property");
+		}
+	};
+
+	class UUInt32Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("UInt32Property");
+		}
+	};
+
+	class UUInt64Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("UInt64Property");
+		}
+	};
+
+	class UInt8Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("Int8Property");
+		}
+	};
+
+	class UInt16Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("Int16Property");
+		}
+	};
+
+	class UInt64Property : public UProperty
+	{
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("Int64Property");
+		}
+	};
+
+	class USoftObjectProperty : public UProperty
+	{
+	public:
+		UClass* PropertyClass();
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("SoftObjectProperty");
+		}
+	};
+
+	class UArrayProperty : public UProperty
+	{
+	public:
+		UProperty* Inner();
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("ArrayProperty");
+		}
+	};
+
+	class UMapProperty : public UProperty
+	{
+	public:
+
+	};
+
+	class USetProperty : public UProperty
+	{
+	public:
 	};
 
 	class UClass : public UStruct
@@ -315,11 +507,16 @@ namespace SDK
 		using FNativeFuncPtr = void(*)(UObject* Context, void* TheStack, void* Result);
 
 		FNativeFuncPtr& Func();
-		uint8& FunctionFlags();
+		uint32& FunctionFlags();
 
 	public:
 		std::string FunctionFlagsToString();
 		
+	public:
+		static UClass* StaticClass()
+		{
+			return StaticClassImpl("Function");
+		}
 	};
 
 	struct FUObjectItem
@@ -716,7 +913,7 @@ namespace SDK
 	public:
 	};
 
-	UClass* StaticClassImpl(const char* ClassName);
+
 
 #define DECLARE_STATIC_CLASS(ClassName) \
     static UClass* StaticClass() \
@@ -739,6 +936,11 @@ namespace SDK
 
 		std::string Key = Class::StaticClass()->GetName().ToString() + "::" + PropertyName;
 
+		bool bUseNext = false;
+
+		if (Class::StaticClass()->GetClass()->GetName() == "ScriptStruct")
+			bUseNext = true; /*PropertyLink is not accessable on structs or functions for most properties, so in general its a better idea to just use next*/
+
 		int Offset = -1;
 		auto It = OffsetCache.find(Key);
 		if (It != OffsetCache.end())
@@ -747,7 +949,36 @@ namespace SDK
 		}
 		else
 		{
-			auto Property = Class::StaticClass()->FindPropertyByName(PropertyName);
+			auto Property = Class::StaticClass()->FindPropertyByName(PropertyName, bUseNext);
+			if (!Property) return -1;
+
+			Offset = Property->Offset_Internal();
+
+			OffsetCache[Key] = Offset;
+		}
+
+		return Offset;
+	}
+	static int GetPropertyOffsetFunc(UFunction* Object, const std::string& PropertyName)
+	{
+		static std::unordered_map<std::string, int> OffsetCache;
+
+		if (!Object)
+		{
+			return -1;
+		}
+
+		std::string Key = Object->GetName().ToString() + "::" + PropertyName;
+
+		int Offset = -1;
+		auto It = OffsetCache.find(Key);
+		if (It != OffsetCache.end())
+		{
+			Offset = It->second;
+		}
+		else
+		{
+			auto Property = Object->FindPropertyByName(PropertyName, true);
 			if (!Property) return -1;
 
 			Offset = Property->Offset_Internal();
@@ -779,4 +1010,44 @@ inline ReturnType& PropertyName() \
         Offset = GetPropertyOffset<ClassName>(this, #PropertyName); \
     } \
     return *reinterpret_cast<ReturnType*>(reinterpret_cast<uint64>(this) + Offset); \
+}
+
+static void* GetArgumentsPtr(SDK::UFunction* Function)
+{
+	int ParamsSize = Function->Size();
+	void* ParamsPtr = malloc(ParamsSize);
+	memset(ParamsPtr, 0, ParamsSize);
+	return &ParamsPtr;
+}
+
+struct FArgInfo
+{
+	std::string Name;
+	int Offset;
+};
+
+static std::vector<FArgInfo> GetArgumentInfo(SDK::UFunction* Function)
+{
+	std::vector<FArgInfo> ArgumentInfo;
+	for (SDK::UField* Child = Function->Children(); Child; Child = Child->Next())
+	{
+		FArgInfo Arg{};
+		size_t PropertyOffset = SDK::CastField<SDK::UProperty>(Child)->Offset_Internal();
+		std::string PropertyName = SDK::CastField<SDK::UProperty>(Child)->GetPropName();
+		Arg.Name = PropertyName;
+		Arg.Offset = PropertyOffset;
+		ArgumentInfo.push_back(Arg);
+	}
+
+	return ArgumentInfo;
+}
+
+static void CallFuncAsNative(SDK::UObject* Object, SDK::UFunction* Function, void*& Params)
+{
+	auto Flgs = Function->FunctionFlags();
+	Function->FunctionFlags() |= 0x400;
+
+	Object->ProcessEvent(Function, *&Params);
+
+	Function->FunctionFlags() = Flgs;
 }
