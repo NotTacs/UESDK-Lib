@@ -35,13 +35,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main\SDK.cpp">
+    <ClCompile Include="main\SDK.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\include\sdk\Basic.cpp">
+    <ClCompile Include="src\cpp\Basic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\include\sdk\Engine.cpp">
+    <ClCompile Include="src\cpp\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

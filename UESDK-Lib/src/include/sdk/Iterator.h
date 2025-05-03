@@ -12,6 +12,7 @@ namespace SDK
 			{
 				CurrentProperty = Struct->PropertyLink();
 			}
+			CurrentProperty = nullptr;
 		}
 
 		bool IsValid() const

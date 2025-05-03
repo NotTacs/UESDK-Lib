@@ -1,5 +1,5 @@
-#include "..\SDK.h"
-#include "Basic.h"
+#include "../include/SDK.h"
+#include <sdk/Basic.h>
 
 
 SDK::UField* SDK::UField::Next()
@@ -184,8 +184,6 @@ SDK::UScriptStruct* SDK::UStructProperty::Struct()
 	return *reinterpret_cast<UScriptStruct**>(__int64(this) + StructOffset);
 }
 
-
-
 std::string SDK::UProperty::GetPropName()
 {
 	return SDK::UE::GetFortniteVersion() >= 12.1 ? (*(FName*)(__int64(this) + 0x28)).ToString().ToString() : GetName().ToString();
@@ -262,7 +260,7 @@ std::string SDK::UProperty::GetPropCPPType()
 		return std::string("TArray<") + InnerType + ">";
 	}
 	
-	return "uint8 " + this->GetPropName() + "[" + std::to_string(this->Offset_Internal()) + "]; /* Failed to get property */";
+	return "uint8 " + this->GetPropName() + "[" + std::to_string(this->Offset_Internal()) + "]; /* Failed to get property type */";
 }
 
 SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool bUseNext)

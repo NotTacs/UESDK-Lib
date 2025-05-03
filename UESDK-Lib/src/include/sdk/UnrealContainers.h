@@ -130,7 +130,7 @@ namespace UC
 		*/
 
 		FORCEINLINE TArray()
-			:ArrayNum(0)
+			: Data(nullptr),ArrayNum(0)
 			, ArrayMax(0)
 		{
 		}

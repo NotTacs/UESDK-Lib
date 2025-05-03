@@ -136,6 +136,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>./src/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -154,9 +155,9 @@
     <ClInclude Include="src\include\sdk\UnrealContainers.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\include\sdk\Basic.cpp" />
-    <ClCompile Include="src\include\sdk\Engine.cpp" />
-    <ClCompile Include="src\main\SDK.cpp" />
+    <ClCompile Include="src\cpp\Basic.cpp" />
+    <ClCompile Include="src\cpp\Engine.cpp" />
+    <ClCompile Include="main\SDK.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

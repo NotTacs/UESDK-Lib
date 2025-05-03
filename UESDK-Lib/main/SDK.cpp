@@ -57,7 +57,7 @@ bool SDK::UE::Core::InitGObjects()
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "Unexpected Exception" << std::endl;
+		std::cout << "Unexpected Exception: " << e.what() << std::endl;
 	}
 
 	if (!SDK::UE::Core::GObjects)

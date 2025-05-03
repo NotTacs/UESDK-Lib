@@ -921,8 +921,11 @@ namespace SDK
         return StaticClassImpl(#ClassName + 1); \
     }
 
-#define FIND_PROPERTY_BY_NAME(ClassName, PropertyName) \
-    ClassName::StaticClass()->FindPropertyByName((#PropertyName))
+#define DECLARE_DEFAULT_OBJECT(ClassName) \
+   static UObject* GetDefaultObj() \
+   { \
+       return ClassName::StaticClass()->GetDefaultObj(); \
+   } \
 
 	template<typename Class = void>
 	int GetPropertyOffset(Class* Object, const std::string& PropertyName)
@@ -1016,6 +1019,10 @@ static void* GetArgumentsPtr(SDK::UFunction* Function)
 {
 	int ParamsSize = Function->Size();
 	void* ParamsPtr = malloc(ParamsSize);
+
+	if (ParamsPtr != NULL)
+		return nullptr;
+
 	memset(ParamsPtr, 0, ParamsSize);
 	return &ParamsPtr;
 }
@@ -1023,7 +1030,7 @@ static void* GetArgumentsPtr(SDK::UFunction* Function)
 struct FArgInfo
 {
 	std::string Name;
-	int Offset;
+	size_t Offset;
 };
 
 static std::vector<FArgInfo> GetArgumentInfo(SDK::UFunction* Function)
