@@ -2,6 +2,9 @@
 #include <string>
 #include <stdexcept>
 
+constexpr float DegreesToRadians(float Degrees) { return Degrees * (3.14159265358979323846f / 180.f); }
+constexpr float RadiansToDegrees(float Radians) { return Radians * (180.f / 3.14159265358979323846f); }
+
 namespace UC
 {
 	typedef uint32_t uint32;

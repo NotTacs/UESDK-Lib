@@ -40,3 +40,25 @@ void SDK::FFrame::IncrementCode()
 {
 	Code = (uint8_t*)(__int64(Code) + (bool)Code);
 }
+
+SDK::FQuat SDK::FQuat::FromRotator(const SDK::FRotator& R)
+{
+	const float P = DegreesToRadians(R.Pitch) * 0.5f;
+	const float Y = DegreesToRadians(R.Yaw) * 0.5f;
+	const float Rl = DegreesToRadians(R.Roll) * 0.5f;
+
+	const float sinP = std::sin(P);
+	const float cosP = std::cos(P);
+	const float sinY = std::sin(Y);
+	const float cosY = std::cos(Y);
+	const float sinR = std::sin(Rl);
+	const float cosR = std::cos(Rl);
+
+	FQuat q;
+	q.W = cosR * cosP * cosY + sinR * sinP * sinY;
+	q.X = sinR * cosP * cosY - cosR * sinP * sinY;
+	q.Y = cosR * sinP * cosY + sinR * cosP * sinY;
+	q.Z = cosR * cosP * sinY - sinR * sinP * cosY;
+
+	return q;
+}

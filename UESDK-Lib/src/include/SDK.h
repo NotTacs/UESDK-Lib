@@ -13,6 +13,7 @@
 #include <vector>
 #include <unordered_map>
 #include "memcury.h"
+#include <cmath>
 #include "sdk/Basic.h"
 #include "sdk/Engine.h"
 #include "sdk/Iterator.h"

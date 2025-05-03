@@ -192,11 +192,31 @@ namespace SDK
 		FVector(float x, float y, float z) : X(x), Y(y), Z(z) {}
 	};
 
+	struct FRotator;
+
 	struct FQuat {
 		float X, Y, Z, W;
 
 		FQuat() : X(0), Y(0), Z(0), W(1) {}
 		FQuat(float x, float y, float z, float w) : X(x), Y(y), Z(z), W(w) {}
+
+		static FQuat FromRotator(const FRotator& R);
+	};
+
+	struct FRotator
+	{
+		float Pitch;
+		float Yaw;
+		float Roll;
+
+		FRotator(float InPitch = 0, float InYaw = 0, float InRoll = 0)
+			: Pitch(InPitch), Yaw(InYaw), Roll(InRoll) {
+		}
+
+		FQuat Quaternion() const
+		{
+			return FQuat::FromRotator(*this);
+		}
 	};
 
 	struct FTransform {
