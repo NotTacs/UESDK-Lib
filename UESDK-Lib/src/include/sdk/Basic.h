@@ -993,6 +993,9 @@ namespace SDK
 	}
 }
 
+#define FIND_PROPERTY_BY_NAME(ClassName, PropertyName, OutVariable) \
+OutVariable = ClassName::StaticClass()->FindPropertyByName(#PropertyName); \
+
 #define DECLARE_PROP_WITH_OFFSET(ReturnType, ClassName, PropertyName) \
 ReturnType& ClassName::PropertyName() \
 { \
@@ -1004,6 +1007,24 @@ ReturnType& ClassName::PropertyName() \
     return *reinterpret_cast<ReturnType*>(reinterpret_cast<uint64>(this) + Offset); \
 }
 
+#define DECLARE_BOOLPROP_WITH_OFFSET(ClassName, PropertyName) \
+inline bool Get##PropertyName() \
+{ \
+    static SDK::UProperty* Property = nullptr; \
+    if (!Property) { \
+        FIND_PROPERTY_BY_NAME(ClassName, PropertyName, Property); \
+    } \
+    return reinterpret_cast<SDK::UBoolProperty*>(Property)->ReadBitFieldValue(this); \
+} \
+inline void Set##PropertyName(bool Value) \
+{ \
+    static SDK::UProperty* Property = nullptr; \
+    if (!Property) { \
+        FIND_PROPERTY_BY_NAME(ClassName, PropertyName, Property); \
+    } \
+    return reinterpret_cast<SDK::UBoolProperty*>(Property)->SetBitFieldValue(this, Value); \
+} \
+
 #define DECLARE_INLINEPROP_WITH_OFFSET(ReturnType, ClassName, PropertyName) \
 inline ReturnType& PropertyName() \
 { \
@@ -1014,6 +1035,8 @@ inline ReturnType& PropertyName() \
     } \
     return *reinterpret_cast<ReturnType*>(reinterpret_cast<uint64>(this) + Offset); \
 }
+
+
 
 static void* GetArgumentsPtr(SDK::UFunction* Function)
 {

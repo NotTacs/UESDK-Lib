@@ -35,3 +35,19 @@ static int Size = ScriptStructShit::StaticClass()->Size();
 void* ScriptStructPtr = SDK::UE::Memory::ResizeVirtualMemory(&MagicalReference, sizeof(MagicalReference), Size);
 // you could then go on to changing that to the actual struct by casting ofc like (ScriptStructShit*)ScriptStructPtr and it would work fine
 ```
+
+# HOW TO PROPERLY USE A BOOL PROPERTY INSIDE OF A CLASS
+So for this lets use AFortGameModeAthena::bWorldIsReady as an example.
+now in most builds it has a bit index of 0, but that may change and we still need that bit Index in order to read/set it.
+First lets setup our class
+
+```C++
+class AFortGameModeAthena
+{
+public:
+DECLARE_BOOLPROP_WITH_OFFSET(AFortGameModeAthena, bWorldIsReady) // what this now does is it makes a GetbWorldIsReady function which returns a bool, SetbWorldIsReady calls a function that automatically sets your property to whatever value you entered.
+public:
+DECLARE_STATIC_CLASS(AFortGameModeAthena)//Now that we have this we want to make a modification and add in our bool prop using our define
+}
+
+```
