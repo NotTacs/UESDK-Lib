@@ -298,16 +298,20 @@ SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool 
 		return result;
 	}
 
-	TFieldIterator Iterator(this);
-
-	while (Iterator.IsValid())
+	result = this->PropertyLink();
+	if (!result)
 	{
-		if (Iterator.GetCurrent()->GetPropName() == PropertyName)
+		std::cout << "Failed to get valid PropertyLink from Class: " << this->GetName().ToString() << std::endl;
+		return nullptr;
+	}
+	while (result->GetPropName() != PropertyName)
+	{
+		result = result->PropertyLinkNext();
+		if (!result)
 		{
-			result = Iterator.GetCurrent();
-			break;
+			std::cout << "Failed to get NextProperty from PropertyLink in Class: " << this->GetName().ToString() << std::endl;
+			return nullptr;
 		}
-		Iterator.Next();
 	}
 
 	return result;

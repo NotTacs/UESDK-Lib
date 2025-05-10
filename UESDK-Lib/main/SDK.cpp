@@ -81,7 +81,7 @@ bool SDK::UE::Core::InitMemberOffsets()
 	MemberOffsets::UStruct_DestructorLink = MemberOffsets::UStruct_RefLink + 0x8;
 	MemberOffsets::UStruct_PostConstructLink = MemberOffsets::UStruct_DestructorLink + 0x8;
 	MemberOffsets::UStruct_ScriptObjectReferences = MemberOffsets::UStruct_PostConstructLink + 0x8;
-	MemberOffsets::UProperty_Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 && std::floor(SDK::UE::GetFortniteVersion()) < 20 ? 0x4C : 0x44;
+	MemberOffsets::UProperty_Offset_Internal = SDK::UE::GetFortniteVersion() >= 12.10 ? 0x4C : 0x44;
 
 	return true;
 }

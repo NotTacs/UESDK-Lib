@@ -11,7 +11,7 @@ SDK::UEngine* SDK::UEngine::GetEngine()
 		{
 			if (!Object) continue;
 			if (!Object->Object) continue;
-			if (Object->Object->GetName().ToString().contains("FortEngine_"))
+			if (Object->Object->GetName().ToString().contains("FortEngine_") && !Object->Object->IsDefaultObject())
 			{
 				SDK::UE::Core::GEngine = (SDK::UEngine*)Object->Object;
 			}
