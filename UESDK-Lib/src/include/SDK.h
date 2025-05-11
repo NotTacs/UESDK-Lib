@@ -32,6 +32,7 @@ namespace SDK
 	namespace MemberOffsets {
 		extern int UStruct_SuperStruct;
 		extern int UStruct_Children;
+		extern int UStruct_ChildProperties;
 		extern int UStruct_MinAllignment;
 		extern int UStruct_Script;
 		extern int UStruct_PropertyLink;

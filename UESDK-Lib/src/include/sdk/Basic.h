@@ -276,11 +276,23 @@ namespace SDK
 		UField* Next();
 	};
 
+	struct alignas(8) FField
+	{
+	public:
+		void* VTable;
+		void* ClassPrivate;
+		uint8_t Owner[0x10];
+		FField* Next;
+		FName NamePrivate;
+		EObjectFlags FlagsPrivate;
+	};
+
 	class UStruct : public UField
 	{
 	public:
 		UStruct* SuperStruct() const;
 		UField* Children() const;
+		FField* ChildrenProperties() const; /*does not exist on below 12.10*/
 		int32 Size() const;
 		int32 MinAlignment() const;
 		TArray<uint8_t>& Script() const;

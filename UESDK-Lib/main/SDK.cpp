@@ -9,6 +9,7 @@ uintptr_t SDK::Addresses::StepExplicitProperty = 0;
 
 int SDK::MemberOffsets::UStruct_SuperStruct = -1;
 int SDK::MemberOffsets::UStruct_Children = -1;
+int SDK::MemberOffsets::UStruct_ChildProperties = -1;
 int SDK::MemberOffsets::UStruct_MinAllignment = -1;
 int SDK::MemberOffsets::UStruct_Script = -1;
 int SDK::MemberOffsets::UStruct_PropertyLink = -1;
@@ -72,8 +73,9 @@ bool SDK::UE::Core::InitGObjects()
 bool SDK::UE::Core::InitMemberOffsets()
 {
 	MemberOffsets::UStruct_SuperStruct = SDK::UE::GetEngineVersion() >= 4.22 ? 0x40 : 0x30;
-	MemberOffsets::UStruct_Children = SDK::UE::GetFortniteVersion() >= 12.10 ? MemberOffsets::UStruct_SuperStruct + 0x10 : MemberOffsets::UStruct_SuperStruct + 0x8;
-	MemberOffsets::UStruct_Size = SDK::UE::GetFortniteVersion() >= 12.10 ? MemberOffsets::UStruct_Children + 0x10 /*use childrenproperties*/ : MemberOffsets::UStruct_Children + 0x8;
+	MemberOffsets::UStruct_Children = MemberOffsets::UStruct_SuperStruct + 0x8;
+	MemberOffsets::UStruct_ChildProperties = SDK::UE::GetFortniteVersion() >= 12.10 ? MemberOffsets::UStruct_Children + 2 : -1;
+	MemberOffsets::UStruct_Size = SDK::UE::GetFortniteVersion() >= 12.10 ? MemberOffsets::UStruct_Children + 0x10 : MemberOffsets::UStruct_Children + 0x8;
 	MemberOffsets::UStruct_MinAllignment = MemberOffsets::UStruct_Children + 0xC;
 	MemberOffsets::UStruct_Script = MemberOffsets::UStruct_Children + 0x10;
 	MemberOffsets::UStruct_PropertyLink = MemberOffsets::UStruct_SuperStruct + 0x30;
