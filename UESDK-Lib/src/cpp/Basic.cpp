@@ -478,7 +478,7 @@ bool SDK::UClass::IsChildOf(const SDK::UStruct* Base) const
 
 SDK::uint8 SDK::UBoolProperty::FieldMask()
 {
-	if (SDK::UE::GetEngineVersion() <= 4.24 || SDK::UE::GetFortniteVersion() >= 20)
+	if (SDK::UE::GetEngineVersion() <= 4.24 || SDK::UE::GetFortniteVersion() >= 19)
 		return *(uint8_t*)(__int64(this) + (112 + 3 + 0));
 	else if (SDK::UE::GetEngineVersion() >= 4.25)
 		return *(uint8_t*)(__int64(this) + (120 + 3 + 0));
