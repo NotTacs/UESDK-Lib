@@ -276,15 +276,35 @@ namespace SDK
 		UField* Next();
 	};
 
-	struct alignas(8) FField
+	class FFieldClass
 	{
 	public:
-		void* VTable;
-		void* ClassPrivate;
-		uint8_t Owner[0x10];
-		FField* Next;
-		FName NamePrivate;
-		EObjectFlags FlagsPrivate;
+		FName                                         Name;                                              // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		uint64                                        Id;                                                // 0x0008(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		uint64                                        CastFlags;                                         // 0x0010(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		int32                                   ClassFlags;                                        // 0x0018(0x0004)(NOT AUTO-GENERATED PROPERTY)
+		uint8                                         Pad_1C[0x4];                                       // 0x001C(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+		class FFieldClass* SuperClass;                                        // 0x0020(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	};
+
+	class FFieldVariant
+	{
+	public:
+		using ContainerType = union { class FField* Field; class UObject* Object; };                     // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+		ContainerType                                 Container;                                         // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		bool                                          bIsUObject;                                        // 0x0008(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	};
+
+	class FField
+	{
+	public:
+		void* VTable;                                            // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		class FFieldClass* ClassPrivate;                                      // 0x0008(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		FFieldVariant                                 Owner;                                             // 0x0010(0x0010)(NOT AUTO-GENERATED PROPERTY)
+		class FField* Next;                                              // 0x0020(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		FName                                         Name;                                              // 0x0028(0x0008)(NOT AUTO-GENERATED PROPERTY)
+		int32                                         ObjFlags;                                          // 0x0030(0x0004)(NOT AUTO-GENERATED PROPERTY)
 	};
 
 	class UStruct : public UField

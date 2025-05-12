@@ -101,11 +101,8 @@ SDK::UField* SDK::UStruct::Children() const
 
 SDK::FField* SDK::UStruct::ChildrenProperties() const
 {
-	static int ChildrenPropertiesOffset = SDK::MemberOffsets::UStruct_ChildProperties;
-	if (ChildrenPropertiesOffset == -1)
-		return nullptr;
 
-	return *reinterpret_cast<FField**>(__int64(this) + ChildrenPropertiesOffset);
+	return *reinterpret_cast<FField**>(__int64(this) + SDK::MemberOffsets::UStruct_ChildProperties);
 }
 
 SDK::int32 SDK::UStruct::Size() const
@@ -283,7 +280,7 @@ SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool 
 			for (UField* Next = this->Children(); Next != nullptr; Next = Next->Next())
 			{
 				UProperty* NextProp = reinterpret_cast<UProperty*>(Next);
-				std::cout << NextProp->GetPropName() << std::endl;
+				//std::cout << NextProp->GetPropName() << std::endl;
 				result = NextProp;
 				if (NextProp->GetPropName() == PropertyName)
 					return NextProp;
@@ -296,13 +293,14 @@ SDK::UProperty* SDK::UStruct::FindPropertyByName(std::string PropertyName, bool 
 			static bool bUseChildrenProperties = SDK::MemberOffsets::UStruct_ChildProperties != -1;
 			if (bUseChildrenProperties)
 			{
-				for (FField* Next = Struct->ChildrenProperties(); Next != nullptr; Next->Next)
+				for (FField* Next = Struct->ChildrenProperties(); Next; Next = Next->Next)
 				{
-					if (!Next->ClassPrivate) continue;
 					UProperty* NextProp = reinterpret_cast<UProperty*>(Next);
 					result = NextProp;
 					if (NextProp->GetPropName() == PropertyName)
+					{
 						return result;
+					}
 				}
 			}
 			else {
